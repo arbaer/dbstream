@@ -1,0 +1,5 @@
+<!--
+ Author(s): Arian Baer (baer _at_ ftw.at)
+-->
+<?xml version="1.0"?>
+<config ip="localhost" port="3002" directory="PDF/" streamName="PDF_log_tcp_complete" streamType="log_tcp_complete" />

@@ -1,0 +1,322 @@
+<!--
+ Author(s): Arian Baer (baer _at_ ftw.at)
+-->
+<?xml version="1.0"?>
+<config ip="localhost" port="5322" restartPenalty="30">
+  <log file="dbs.log" type="stderr, file"/>
+  <modules>
+    <module exec="./scheduler" name="Scheduler">
+      <config ip="localhost" parallelJobs="4" port="5323" strategy="fifo">       
+        <dbs dbname="dbstream" host="localhost" password="****" port="5432" user="dbstream"/>
+      </config>
+    </module>
+    <module exec="./external_import" name="ImportCombined">
+      <config checkInterval="5">
+        <scheduler ip="localhost" port="5323"/>
+        <dbs dbname="dbstream" host="localhost" password="****" port="5432" user="dbstream"/>
+        <tables>
+          <table name="combined"/>
+        </tables>
+      </config>
+    </module>
+    <!--module exec="./viewgen" name="ViewGen_test_window">
+      <config partitionSchema="view0">
+        <scheduler ip="localhost" port="5323"/>
+        <dbs dbname="dbstream" host="localhost" password="****" port="5433" user="dbstream"/>
+        <jobs>
+          <job description="Query to test DBStream using " inputs="combined (window 600)" output="test_window_base (window 3600)" priority="1" schema="serial_time int4, count int4" startTime="1238425200">
+            <query>select serial_time, count(*) from __IN0 group by 1</query>
+          </job>
+          <job description="Query to test DBStream using " inputs="test_window_base (window 3600)" output="test_window_3600 (window 3600)" priority="1" schema="serial_time int4, count int4" startTime="1238425200">
+            <query>select serial_time, sum(count) from __IN0 group by 1</query>
+          </job>
+          <job description="Query to test DBStream using " inputs="test_window_base (window 7200)" output="test_window_7200 (window 7200)" priority="1" schema="serial_time int4, count int4" startTime="1238425200">
+            <query>select serial_time, sum(count) from __IN0 group by 1</query>
+          </job>
+          <job description="Test small window " inputs="test_window_base (window 1)" output="test_window_1 (window 3600)" priority="1" schema="serial_time int4, count int4" startTime="1238425200">
+            <query>select serial_time, sum(count) from __IN0 group by 1</query>
+          </job>
+          <job description="Test small window " inputs="test_window_base (window 3)" output="test_window_3 (window 3600)" priority="1" schema="serial_time int4, count int4" startTime="1238425200">
+            <query>select serial_time, sum(count) from __IN0 group by 1</query>
+          </job>
+        </jobs>
+      </config>
+    </module>
+    <module exec="./viewgen" name="ViewGeneration_counts2">
+      <config partitionSchema="view0">
+        <scheduler ip="localhost" port="5323"/>
+        <dbs dbname="dbstream" host="localhost" password="****" port="5433" user="dbstream"/>
+        <jobs>
+          <job description="Query to test DBStream" inputs="combined (window 3600)" output="counts_per_min_b (window 3600)" priority="1" schema="serial_time int4, count int4" startTime="1238425200">
+            <query>select serial_time, count(*) from __IN0 group by 1</query>
+          </job>
+          <job description="Query to test DBStream using " inputs="combined (window 600)" output="counts_per_min_a (window 3600)" priority="1" schema="serial_time int4, count int4" startTime="1238425200">
+            <query>select serial_time, count(*) from __IN0 group by 1</query>
+          </job>
+        </jobs>
+      </config>
+    </module>
+    <module exec="./viewgen" name="View_cs">
+      <config partitionSchema="view0">
+        <scheduler ip="localhost" port="5323"/>
+        <dbs dbname="dbstream" host="localhost" password="****" port="5433" user="dbstream"/>
+        <jobs>
+          <job description="Query to test reflexive queries" inputs="counts_per_min_a (window 60 primary), counts_per_min_c (window 60 delay 60)" output="counts_per_min_c (window 60)" priority="1" schema="serial_time int4, count int4" startTime="1238425200">
+            <query>
+			select __STARTTS, count(*) from (
+						select __STARTTS, count(*) cnt from __IN0 group by 1 union all
+						select __STARTTS, count(*) cnt from __IN1 group by 1) foo group by 1
+			</query>
+          </job>
+          <job description="Query to test reflexive queries" inputs="counts_per_min_a (window 60 primary), counts_per_min_d (window 60 delay 60)" output="counts_per_min_d (window 60)" priority="1" schema="serial_time int4, count int4" startTime="1238425200">
+            <query>select __STARTTS, sum(cnt) cnt from (       select __STARTTS, sum(count) cnt from __IN1 group by 1 union all       select __STARTTS, sum(count) cnt from __IN0 group by 1) foo group by 1</query>
+          </job>
+        </jobs>
+      </config>
+    </module-->
+    <module exec="./viewgen" name="ViewGeneration1">
+      <config partitionSchema="view0">
+        <scheduler ip="localhost" port="5323"/>
+        <dbs dbname="dbstream" host="localhost" password="****" port="5432" user="dbstream"/>
+        <jobs>
+          <job description="User Ranking (J1). For every IP address, compute the number of uploaded, downloaded and total exchanged (upload + download) bytes" index="serial_time" inputs="combined (window 60)" output="user_ranking_min (window 60)" priority="1" schema="serial_time int4, ip inet, upload int4, download int4, total int4" startTime="1238425200">
+            <query>with t as (select serial_time-(serial_time%60) as serial_time, dest_ip as ip, sum(up_phy_bytes) as up, 0 as down from __IN0 group by 1,2 union all select serial_time-(serial_time%60), source_ip as ip, 0 as up, sum(up_phy_bytes) as down from __IN0 group by 1,2)     select serial_time, ip, sum(up), sum(down), sum(up)+sum(down) from t group by 1,2</query>
+          </job>
+		<job description="User Ranking (J1).
+				For every IP address, compute the number of uploaded,
+				downloaded and total exchanged (upload + download) bytes"
+			inputs="combined (window 60)"
+			output="user_ranking_min (window 3600)"
+			schema="serial_time int4, ip inet, upload int4, download int4, total int4"
+			priority="1"
+			startTime="1238425200"
+			index="serial_time">
+			<query>
+				with t as
+				(select serial_time-(serial_time%60) as serial_time, dest_ip as ip,
+				sum(up_phy_bytes) as up, 0 as down
+				from __IN0 group by 1,2 union all
+				select serial_time-(serial_time%60), source_ip as ip, 0 as up,
+				sum(up_phy_bytes) as down from __IN0 group by 1,2)
+				select serial_time, ip, sum(up), sum(down), sum(up)+sum(down)
+				from t group by 1,2
+			</query>
+	</job>
+        </jobs>
+      </config>
+    </module>
+    <!--module exec="./viewgen" name="ViewGeneration2" restartPenalty="5">
+      <config partitionSchema="view0">
+        <scheduler ip="localhost" port="5323"/>
+        <dbs dbname="dbstream" host="localhost" password="****" port="5433" user="dbstream"/>
+        <jobs>
+			<job description="Frequent IP/Port by Heavy Users (J2) per Minute. Heavy users are defined as the top 10 IP addresses from Job J1 in terms of total exchanged bytes. This Jobs computes the top IP/Port pairs for all heavy users." 
+				index="serial_time, ip, cont_ip, cont_port" 
+				inputs="combined (window 60 primary), user_ranking_min (window 60)" 
+				output="heavy_user_min (window 3600)" 
+				priortiy="1" 
+				schema="serial_time int4, ip inet, cont_ip inet, cont_port int4, bytes_transfered int4" 
+				startTime="1238425200">
+				<query>
+with t as
+	(select serial_time, ip from __IN1 order by total desc, download desc, upload desc, ip limit 10)
+select t.serial_time,
+	ip,
+	case when ip=source_ip then dest_ip else source_ip end,
+	case when ip=source_ip then mobile_port else core_port end,
+	sum(up_phy_bytes) as bytes_transfered
+from __IN0 join t on (dest_ip=ip or source_ip=ip)
+group by 1,2,3,4</query>
+          </job>
+        </jobs>
+      </config>
+    </module>
+    <module exec="./viewgen" name="ViewGeneration3" restartPenalty="5">
+      <config partitionSchema="view0">
+        <scheduler ip="localhost" port="5323"/>
+        <dbs dbname="dbstream" host="localhost" password="****" port="5433" user="dbstream"/>
+        <jobs>
+          <job description="Service Ranking (J3) per minute. For experimental purpose, the set of IP addresses is split arbitrarily into two subsets, A (servers) and B (clients). For every IP address in A, this Jobs computes the total number of connections established by IP addresses in B." index="serial_time, server_ip" inputs="combined (window 60)" output="service_ranking_min (window 60)" priority="1" schema="serial_time int4, server_ip inet, client_conn_cnt int4" startTime="1238425200">
+            <query>select serial_time-(serial_time%60), dest_ip, count(*) from __IN0 where exists (select 1 from user_ip_nets where source_ip &lt;&lt; netmask) group by 1,2</query>
+          </job>
+        </jobs>
+      </config>
+    </module>
+    <module exec="./viewgen" name="ViewGeneration4" restartPenalty="0">
+      <config partitionSchema="view0">
+        <scheduler ip="localhost" port="5323"/>
+        <dbs dbname="dbstream" host="localhost" password="****" port="5433" user="dbstream"/>
+        <jobs>
+          <job description="Unanswered TCP Flows (J4) per minute. For every IP address, this Job computes the number of unanswered TCP flows. A TCP flow is considered answered if the initial SYN packet is acknowledged by a SYN-ACK within 3 seconds." inputs="combined (window 60 primary), combined (window 65)" output="unanswered_tcp_flows_min (window 60)" priority="1" schema="serial_time int4, ip inet, count int4" startTime="1238425200">
+            <query>select serial_time-(serial_time%60), case when flags=2 then source_ip else dest_ip end, count(*) from __IN0 a where not exists (select 1 from __IN1 b where a.serial_time between b.serial_time and b.serial_time+3 and ((a.flags=2 and b.flags=18) or (a.flags=18 and b.flags=2)) and a.source_ip=b.dest_ip and a.dest_ip=b.source_ip and a.mobile_port=b.core_port and a.core_port=b.mobile_port) group by 1,2</query>
+          </job>
+        </jobs>
+      </config>
+    </module-->
+		<!--job description="User Ranking (J1) per hour"
+			inputs="user_ranking_min (window 3600)"
+			output="user_ranking_hour (window 86400)"
+			priority="1"
+			startTime="1238425200"
+			schema="serial_time int4, ip inet, upload int4, download int4, total int4"
+			query="select serial_time-(serial_time%3600) as serial_time, ip, sum(upload), sum(download), sum(total) from __IN0 group by 1,2"
+			index="serial_time"
+			/-->
+		<!--job name="combined"
+			inputs=""
+			output="combined (window 60)"
+			priority="1"
+			startTime="1238425200"
+			schema="timestamp int4, source_ip inet, up_phy_pkts int8, up_ipv4_pkts int8"
+			query="select serial_time-(serial_time%60), source_ip, sum(up_phy_pkts) as up_phy_pkts, sum(up_ipv4_pkts) from __IN0 where exists (select 1 from __IN1 where __IN0.source_ip=__IN1.source_ip) group by 1,2"
+			/-->
+		<!--job name="view_a"
+			inputs="combined (window 60)"
+			output="view_a (window 60)"
+			priority="1"
+			startTime="1238425200"
+			schema="timestamp int4, source_ip inet, up_phy_pkts int8, up_ipv4_pkts int8"
+			query="with __IN1 as (), __IN2 as () select timestamp-(timestamp%60), source_ip, sum(up_phy_pkts) as up_phy_pkts, sum(up_ipv4_pkts) from __IN1 join __IN2 on (__IN1.timestamp=__IN2.timestamp -5) where not exists (select 1 from __IN2 where __IN1.id=__IN2.id) group by 1,2; insert into lustige_table ()"
+			query="select timestamp-(timestamp%60), source_ip, sum(up_phy_pkts) as up_phy_pkts, sum(up_ipv4_pkts) from (select * from combiend where timestamp between 0 and 6) as __IN1 where not exists () group by 1,2"
+			/-->
+		<!--job description="view_a"
+			inputs="combined (window 60 primary), combined (window 60 delay 60)"
+			output="view_a (window 60)"
+			priority="1"
+			startTime="1238425200"
+			schema="serial_time int4, source_ip inet, up_phy_pkts int8, up_ipv4_pkts int8"
+			query="select serial_time-(serial_time%60), source_ip, sum(up_phy_pkts) as up_phy_pkts, sum(up_ipv4_pkts) from __IN0 where exists (select 1 from __IN1 where __IN0.source_ip=__IN1.source_ip) group by 1,2"
+			/-->
+		<!--job description="servers with high load"
+			inputs="combined (window 120 primary), view_a (window 120)"
+			output="servers_with_high_load (window 120)"
+			priority="1"
+			startTime="1238425200"
+			schema="serial_time int4, core_port int4, mobile_port int4, source_ip inet, dest_ip inet, protocol int2, ipv4_protocol int2, flags int2, up_phy_pkts int4, up_ipv4_pkts int4, up_phy_bytes int4, up_ipv4_pdu_byte int4, up_ipv4_sdu_bytes int4"
+			query="select * from __IN0 where exists (select 1 from __IN1 where __IN0.source_ip=__IN1.source_ip and __IN1.up_phy_pkts > 10000)"
+			/-->
+		<!--job description="one minute counter aggregations"
+			inputs="combined (window 60)"
+			output="cnt_1min_agg (window 120)"
+			priority="1"
+			startTime="1238425200"
+			schema="serial_time int4, up_phy_pkts int4, up_ipv4_pkts int4, up_phy_bytes int4, up_ipv4_pdu_byte int4, up_ipv4_sdu_bytes int4"
+			query="select serial_time-(serial_time%60), sum(up_phy_pkts), sum(up_ipv4_pkts), sum(up_phy_bytes), sum(up_ipv4_pdu_byte), sum(up_ipv4_sdu_bytes) from __IN0 group by 1"
+			/-->
+		<module name="ViewGeneration2" exec="./viewgen" restartPenalty="5">
+<config partitionSchema="view0">
+	<scheduler ip="localhost" port="5323" />
+	<dbs dbname="dbstream" user="dbstream" port="5432" host="localhost" password="****" />
+	<jobs>
+		<job description="Frequent IP/Port by Heavy Users (J2) per Minute. Heavy users are defined as the top 10 IP addresses from Job J1 in terms of total exchanged bytes. This Jobs computes the top IP/Port pairs for all heavy users."
+			inputs="combined (window 60 primary), user_ranking_min (window 60)"
+			output="heavy_user_min (window 3600)"
+			priortiy="1"
+			startTime="1238425200"
+			schema="serial_time int4, ip inet, cont_ip inet, cont_port int4, bytes_transfered int4"
+			index="serial_time, ip, cont_ip, cont_port">
+			<query>
+				with t as (select serial_time, ip from __IN1 order by total desc,ip limit 10)
+				select t.serial_time, ip,
+					case when ip=source_ip then dest_ip else source_ip end,
+					case when ip=source_ip then mobile_port else core_port end,
+					sum(up_phy_bytes) as bytes_transfered
+				from __IN0 join t on (dest_ip=ip or source_ip=ip) group by 1,2,3,4
+			</query>
+		</job>
+		<!--job description="Frequent IP/Port by Heavy Users (J2) per hour."
+			inputs="combined (window 3600 primary), user_ranking_hour (window 3600)"
+			output="heavy_user_hour (window 3600)"
+			priortiy="1"
+			startTime="1238425200"
+			schema="serial_time int4, ip inet, cont_ip inet, cont_port int4, bytes_transfered int4"
+			query="with t as (select serial_time, ip from __IN1 order by total desc, ip limit 10) select t.serial_time, ip, case when ip=source_ip then dest_ip else source_ip end, case when ip=source_ip then mobile_port else core_port end, sum(up_phy_bytes) as bytes_transfered from __IN0 join t on (dest_ip=ip or source_ip=ip) group by 1,2,3,4"
+			index="serial_time, ip, cont_ip, cont_port"
+			/-->
+	</jobs>
+</config>
+		</module>
+		<module name="ViewGeneration3" exec="./viewgen" restartPenalty="5">
+<config partitionSchema="view0">
+	<scheduler ip="localhost" port="5323" />
+	<dbs dbname="dbstream" user="dbstream" port="5435" host="localhost" password="****" />
+	<jobs>
+		<job description="Service Ranking (J3) per minute. For experimental purpose, the set of IP addresses is split arbitrarily into two subsets, A (servers) and B (clients). For every IP address in A, this Jobs computes the total number of connections established by IP addresses in B."
+			inputs="combined (window 60)"
+			output="service_ranking_min (window 3600)"
+			priority="1"
+			startTime="1238425200"
+			schema="serial_time int4, server_ip inet, client_conn_cnt int4"
+			index="serial_time, server_ip">
+			<query>
+				select serial_time-(serial_time%60), dest_ip, count(*) from __IN0 where exists (select 1 from user_ip_nets where source_ip &lt;&lt; netmask) group by 1,2
+			</query>
+		</job>
+		<!--job description="Service Ranking (J3) per hour."
+			inputs="service_ranking_min (window 3600)"
+			output="service_ranking_hour (WINDOW 86400)"
+			priority="1"
+			startTime="1238425200"
+			schema="serial_time int4, server_ip inet, client_conn_cnt int4"
+			query="select serial_time-(serial_time%3600), server_ip, sum(client_conn_cnt) from __IN0 group by 1,2"
+			/-->
+	</jobs>
+</config>
+		</module>
+		<module name="ViewGeneration4" exec="./viewgen" restartPenalty="0">
+<config partitionSchema="view0">
+	<scheduler ip="localhost" port="5323" />
+	<dbs dbname="dbstream" user="dbstream" port="5432" host="localhost" password="****" />
+	<jobs>
+		<!--job description="test query"
+			inputs="combined (window 120)"
+			output="cnt_1min_agg6 (window 120)"
+			priority="1"
+			startTime="1238425200"
+			schema="serial_time int4, up_phy_pkts int4, up_ipv4_pkts int4, up_phy_bytes int4, up_ipv4_pdu_byte int4, up_ipv4_sdu_bytes int4"
+			query="select serial_time-(serial_time%60), sum(up_phy_pkts), sum(up_ipv4_pkts), sum(up_phy_bytes), sum(up_ipv4_pdu_byte), sum(up_ipv4_sdu_bytes) from __IN0 group by 1"
+			/-->
+		<job description="Unanswered TCP Flows (J4) per minute. For every IP address, this Job computes the number of unanswered TCP flows. A TCP flow is considered answered if the initial SYN packet is acknowledged by a SYN-ACK within 3 seconds."
+			inputs="combined (window 60 primary), combined (window 65)"
+			output="unanswered_tcp_flows_min (window 3600)"
+			priority="1"
+			startTime="1238425200"
+			schema="serial_time int4, ip inet, count int4">
+			<query>
+select serial_time-(serial_time%60), case when flags=2 then source_ip else dest_ip end, count(*) 
+	from __IN0 a 
+	where not exists (select 1 from __IN1 b where a.serial_time between b.serial_time and b.serial_time+3 and ((a.flags=2 and b.flags=18) or (a.flags=18 and b.flags=2)) and a.source_ip=b.dest_ip and a.dest_ip=b.source_ip and a.mobile_port=b.core_port and a.core_port=b.mobile_port) 
+	group by 1,2
+			</query>
+		</job>
+	</jobs>
+</config>
+		</module>
+		<!--module name="ViewGen 3" exec="./viewgen">
+<config ip="localhost" port="5323">
+	<jobs>
+		<job name="view_ab"
+			inputs="a,b"
+			outputs="view_ab, view_c"
+			priority="1"
+			startTime="0"
+			timeWindow="1"
+			partLength="1"
+			schema="timestamp int4, source_ip inet, up_phy_pkts int8, up_ipv4_pkts int8"
+			query="select timestamp-(timestamp%60), source_ip, sum(up_phy_pkts) as up_phy_pkts, sum(up_ipv4_pkts) from __INPUT group by 1,2"
+			/>
+		<job name="stupid_thing"
+			inputs="view_a,view_b, view_c"
+			outputs="view_b"
+			priority="1"
+			startTime="0"
+			timeWindow="5"
+			partLength="5"
+			schema="timestamp int4, source_ip inet, up_phy_pkts int8, up_ipv4_pkts int8"
+			query="select timestamp-(timestamp%60), source_ip, sum(up_phy_pkts) as up_phy_pkts, sum(up_ipv4_pkts) from __INPUT group by 1,2"
+			/>
+	</jobs>
+</config>
+		</module-->
+	</modules>
+</config>

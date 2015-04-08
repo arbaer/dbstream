@@ -1,0 +1,8 @@
+A collection of tools which can be used together with DBStream
+
+
+listJobs.xslt:
+This can be used to produce a html file containing a overview of the jobs defined in the server config. you can generate the jobs by running the following command:
+
+xsltproc listJob.xslt ../server/serverConf.xml
+

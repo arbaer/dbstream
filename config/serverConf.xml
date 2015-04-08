@@ -1,0 +1,23 @@
+<!--
+ Author(s): Arian Baer (baer _at_ ftw.at)
+-->
+<?xml version="1.0"?>
+<config ip="localhost" port="5322" restartPenalty="30">
+	<log file="dbs.log" type="stderr, file"/>
+	<modules>
+		<module exec="./math_repo" name="CopyFileExample">
+<config ip="localhost" port="3000">
+  <import fileTimeConvMethod="tstat" pollInterval="3">
+    <!-- CopyFile handler example config: <fileHandler type="copy" outDir="target" /> -->
+    <fileHandler type="copy" outDir="target" />
+    <!--fileHandler type="dbs" outDir="/tmp/target">
+      <dbsHandler partSchema="data0" inputWindow="600" outputWindow="600">
+        <dbs dbname="dbstream" host="localhost" password="****" port="5432" user="dbstream"/>
+        <scheduler ip="localhost" port="5323"/>
+      </dbsHandler>
+    </fileHandler-->
+  </import>
+</config>
+		</module>		
+	</modules>
+</config>

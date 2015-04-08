@@ -1,0 +1,44 @@
+<!--
+ Author(s): Arian Baer (baer _at_ ftw.at)
+-->
+<?xml version="1.0"?>
+<config ip="localhost" port="5322" restartPenalty="3">
+  <log file="dbs.log" type="stderr, file"/>
+  <modules>
+    <module exec="./scheduler" name="Scheduler">
+      <config ip="localhost" parallelJobs="4" port="5323" strategy="fifo">
+        <dbs dbname="dbstream" host="localhost" password="****" port="5432" user="dbstream"/>
+      </config>
+    </module>
+    <module exec="./viewgen" name="ViewGeneration1">
+      <config partitionSchema="view0">
+        <scheduler ip="localhost" port="5323"/>
+        <dbs dbname="dbstream" host="localhost" password="****" port="5432" user="dbstream"/>
+        <jobs>
+          <job description="Test job..."
+					     inputs="pul_log_tcp_complete (window 3600)" 
+					     output="tstat_test (window 3600)" 
+					     priority="1" 
+					     schema="serial_time int4, cnt int4" 
+					     startTime="1418652000">
+            <query>select __STARTTS, count(*) from __IN0</query>
+          </job>
+        </jobs>
+      </config>
+    </module>
+<module exec="./math_repo" name="TstatImport">
+<config ip="localhost" port="3000">
+  <import fileTimeConvMethod="tstat" pollInterval="3">
+    <!-- CopyFile handler example config: <fileHandler type="copy" outDir="target" /> -->
+    <!--fileHandler type="copy" outDir="target" /-->
+    <fileHandler type="dbs" outDir="/tmp/target">
+      <dbsHandler partSchema="data0" inputWindow="600" outputWindow="600">
+        <dbs dbname="dbstream" host="localhost" password="****" port="5432" user="dbstream"/>
+        <scheduler ip="localhost" port="5323"/>
+      </dbsHandler>
+    </fileHandler>
+  </import>
+</config>
+    </module>
+  </modules>
+</config>
