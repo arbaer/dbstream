@@ -1,20 +1,4 @@
-# 
-# Copyright (C) 2013 - 2015 - FTW Forschungszentrum Telekommunikation Wien GmbH (www.ftw.at)
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License, version 3,
-# as published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
-#
-# Author(s): Arian Baer (baer _at_ ftw.at)
-#
+Copyright (C) 2013 - 2015 - FTW Forschungszentrum Telekommunikation Wien GmbH (www.ftw.at) 
 
 This file describes how to use the Mplane Authorized Transfer via HTTP (MATH). There are two executables provided.
 
@@ -40,3 +24,5 @@ Then, in another shell or on the other machine, the data is coming from you need
 Pleaxse note that for the moment you need to give the URL of the repository as a commandline argument. LAter on this will be handled by the mPlane supervisor.
 
 Please note, that the math_repo can be used in combination with the DBStream hydra server process or as a stand alone executable.
+
+
