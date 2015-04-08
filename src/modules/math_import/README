@@ -15,7 +15,6 @@
 #
 # Author(s): Arian Baer (baer _at_ ftw.at)
 #
-#
 
 This file describes how to use the Mplane Authorized Transfer via HTTP (MATH). There are two executables provided.
 
@@ -26,14 +25,17 @@ math_probe.xml -- is the configuration file for the probe. The most important pa
 math_repo.xml -- is the configuration file for the repository. The most important part here is the outDir XML attribute of the fileHandlerConfig XML element, which is used as the target for the files being copied.
 
 
-
 To start the transfer of file using MATH you first need to start configure and start the repository part:
 
+```
 ./math_repo
+```
 
 Then, in another shell or on the other machine, the data is coming from you need to start the probe part:
 
+```
 ./math_probe --repoUrl "localhost:3000"
+```
 
 Pleaxse note that for the moment you need to give the URL of the repository as a commandline argument. LAter on this will be handled by the mPlane supervisor.
 
