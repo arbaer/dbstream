@@ -3,9 +3,12 @@ Copyright (C) 2013 - 2015 - FTW Forschungszentrum Telekommunikation Wien GmbH (w
 This file describes how to use the Mplane Authorized Transfer via HTTP (MATH). There are two executables provided.
 
 math_probe -- handles the probe part, i.e. it provides the ability to download files following the MATH protocol.
+
 math_repo  -- handles the download of files and so far only implements a plain copy mode.
 
-math_probe.xml -- is the configuration file for the probe. The most important part is the directory XML attribute to configure the directory to copy.
+math_probe.xml -- is the configuration file for the probe. The most important part is the directory XML attribute to
+configure the directory to copy.
+
 math_repo.xml -- is the configuration file for the repository. The most important part here is the outDir XML attribute of the fileHandlerConfig XML element, which is used as the target for the files being copied.
 
 
