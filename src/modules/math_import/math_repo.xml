@@ -7,7 +7,7 @@
 		<!-- CopyFile handler example config: <fileHandler type="copy" outDir="target" /> -->
 		<fileHandler type="dbs" outDir="/tmp/target">
 			<dbsHandler partSchema="data0" inputWindow="600" outputWindow="600">
-				<dbs dbname="abaer" host="localhost" password="1434" port="5432" user="abaer"/>
+				<dbs dbname="dbstream" host="localhost" password="****" port="5432" user="dbstream"/>
 				<scheduler ip="localhost" port="5323"/>
 			</dbsHandler>
 		</fileHandler>
