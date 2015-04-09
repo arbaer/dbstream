@@ -26,6 +26,8 @@ Wireless Communications and Mobile Computing Conference (IWCMC), 2014
 [http://www.tlc-networks.polito.it/mellia/papers/BigData14.pdf](http://www.tlc-networks.polito.it/mellia/papers/BigData14.pdf)
 IEEE International Conference on Big Data (IEEE BigData), 2014
 
+If you are using DBStream for any research purpose we would highly appreciate if you reference [2].
+
 
 Installation
 ============
