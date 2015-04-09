@@ -1,27 +1,30 @@
 DBStream
 ========
 
-DBStream is a flexible and easy to use Data Stream Warehouse (DSW) designed and implemented at FTW.
-The main purpose of DBStream is to store and analyze large amounts network monitoring data [1].
+DBStream is a flexible and easy to use Data Stream Warehouse (DSW) designed and implemented at FTW in Vienna, Austria.
+The main purpose of DBStream is to store and analyze large amounts of network monitoring data [1].
 But, it might also be applied to data from other application domains like e.g. smart grids, smart cities,
 intelligent transportation systems, or any other use case that requires continuous processing of large amounts 
-of data over time.
+of heterogeneous data data over time.
 DBStream is implemented as a middle-ware layer on top of PostgreSQL. Whereas all data processing is done in 
-PostgreSQL, DBStream offers the ability to receive, store and process multiple data stream in parallel. As we have
+PostgreSQL, DBStream offers the ability to receive, store and process multiple data streams in parallel. As we have
 shown in a recently published benchmark study [2], DBStream is at least on par with recent large-scale data processing
 frameworks like e.g. Hadoop and Spark. 
-In addition, DBStream offers a declarative, SQL-based stream processing language which is precise but yet 
-very flexible and easy to use. 
+In addition, DBStream offers a declarative, SQL-based Continuous Execution Language (CEL) which is highly precise
+but yet very flexible and easy to use. Using this novel stream processing language, advanced analytics can be 
+programmed to run in parallel and continuously over time, using just a few lines of code.
 
 Further information about DBStream can be found in the following research papers:
 
 [1] Arian Baer, Pedro Casas, Lukasz Golab and Alessandro Finamore
 "DBStream: An Online Aggregation, Filtering and Processing System for Network Traffic Monitoring"
 [http://dx.doi.org/10.1109/IWCMC.2014.6906426](http://dx.doi.org/10.1109/IWCMC.2014.6906426)
+Wireless Communications and Mobile Computing Conference (IWCMC), 2014
 
 [2] Arian Baer, Alessandro Finamore, Pedro Casas, Lukasz Golab, Marco Mellia
 "Large-Scale Network Traffic Monitoring with DBStream, a System for Rolling Big Data Analysis"
 [www.tlc-networks.polito.it/mellia/papers/BigData14.pdf](www.tlc-networks.polito.it/mellia/papers/BigData14.pdf)
+IEEE International Conference on Big Data (IEEE BigData), 2014
 
 
 Installation
