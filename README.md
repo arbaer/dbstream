@@ -28,6 +28,7 @@ IEEE International Conference on Big Data (IEEE BigData), 2014
 
 If you are using DBStream for any research purpose we would highly appreciate if you reference [2].
 
+![alt text](https://github.com/arbaer/dbstream/blob/master/dbs_logo.png "DBStream logo")
 
 Installation
 ============
