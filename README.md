@@ -1,5 +1,7 @@
-DBStream
-========
+
+
+
+![alt text](https://github.com/arbaer/dbstream/blob/master/dbs_logo.png "DBStream logo")
 
 DBStream is a flexible and easy to use Data Stream Warehouse (DSW) designed and implemented at FTW in Vienna, Austria.
 The main purpose of DBStream is to store and analyze large amounts of network monitoring data [1].
@@ -28,7 +30,6 @@ IEEE International Conference on Big Data (IEEE BigData), 2014
 
 If you are using DBStream for any research purpose we would highly appreciate if you reference [2].
 
-![alt text](https://github.com/arbaer/dbstream/blob/master/dbs_logo.png "DBStream logo")
 
 Installation
 ============
