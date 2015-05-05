@@ -87,15 +87,27 @@ func (f *DBSImportHandler) Configure(cfg FHConfig, importCfg util.DBSImportConfi
 
 	xml.Unmarshal(cfg.InnerXml, &f.dbsCfg)
 
+	if _, err := os.Stat(f.cfg.OutDir); os.IsNotExist(err) {
+		// path/to/whatever does not exist
+		os.Mkdir(f.cfg.OutDir, 0777)
+	}
+	
+
 	//recover state
 	f.stateFilename = f.cfg.OutDir + "/dbs_stat_" + importCfg.StreamName + ".xml"
 
 	var state DBSFHState
 	statFile, err := os.Open(f.stateFilename)
 	if os.IsNotExist(err) {
-		log.Print("No state file found starting import from the beginning.")		
+		log.Print("No state file found starting import from the beginning.")
+
+		statFile, err = os.Create(f.stateFilename)
+		if err != nil {
+			log.Fatalf("ERROR: Creating state file: %v\n", err)
+		}
+
 	} else if err != nil {
-		log.Fatalf("ERROR: State file Error: %v\n", err)
+		log.Fatalf("ERROR: Opening state file: %v\n", err)
 	}
 
 	decode := xml.NewDecoder(statFile)
@@ -137,9 +149,14 @@ func convTime(t int64) string {
 	return time.Unix(t, 0).Format("06-01-02 15:04:05")
 }
 
-func (f *DBSImportHandler) GetStatus() string {
-	return fmt.Sprintf("remote:%s handler:%s fw:%s tw:%s", 
+func (f *DBSImportHandler) GetStatus() (status string) {
+	if f.writer != nil {
+		status = fmt.Sprintf("remote:%s handler:%s fw:%s tw:%s", 
 		convTime(f.remoteFileTime), convTime(f.lastSerialTime), convTime(f.writer.LastFileTime), convTime(f.tableWriter.CurrentTime))
+	} else {
+		status = "waiting for probe to become available."
+	}
+	return status
 }
 
 /* private functions */

@@ -26,7 +26,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"reflect"
+//	"reflect"
 	"strconv"
 	"sync"
 	"time"
@@ -97,7 +97,7 @@ func  getFileList(url, streamName string) (files []string) {
 	for {
 		resp, err :=  http.Get("http://" + url + "/ListDir/" + streamName)
 		if err != nil {
-			log.Printf("ERROR: %+v", err)
+			log.Printf("ERROR probe not available: %+v", err)
 			time.Sleep(3 * time.Second)
 			continue
 		}
@@ -203,7 +203,7 @@ func (i *WebHandler) StartImport(conf util.DBSImportConfig) (newId int) {
 
 	//check if import already exists
 	for id, imp := range i.imports {
-		if reflect.DeepEqual(*imp, conf) {
+		if imp.StreamName == conf.StreamName {
 			log.Printf("Import: %s already exists, rejecting.", conf)
 			return id
 		}
