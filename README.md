@@ -34,6 +34,14 @@ If you are using DBStream for any research purpose we would highly appreciate if
 Installation
 ============
 
+## Note for older Ubuntu Versions
+
+DBStream and the used libraries assume that you are using golang version 1.2.x. Therefore, for older versions of Ubuntu like e.g. 12.04 you might follow the instructions in this guide: 
+
+[http://www.tuomotanskanen.fi/installing-go-1-2-on-ubuntu-12-04-lts/](http://www.tuomotanskanen.fi/installing-go-1-2-on-ubuntu-12-04-lts/)
+
+## General Installation Instructions
+
 In order to compile the go source code of DBStream you have to install the go language:
 
 ```
