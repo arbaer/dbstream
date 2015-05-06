@@ -100,13 +100,121 @@ This command shows the current status of the application server every second:
 watch -n 1 ./remote
 ```
 
-The default config also starts a CopyFile module. You can see that currently no files are beeing imported by checking:
+The default config also starts a CopyFile module. You can see that currently no files are being imported by checking:
 
 http://localhost:3000/DBSImport
 
 
 
-Stay tuned for further documentation.
+Setting up Postgres as a DBStream Backend
+=========================================
+
+The first step is to install PostgreSQL. We where using versions from up to 8.4 for DBStream, but rather recommend to use newer versions, like e.g. 9.3. On ubuntu you can install PostgreSQL with the following command:
+
+
+```
+apt-get install postgresql-9.3
+```
+
+The next step is to create an operating system and database user for DBStream. From now on, we will assume that this user is called "dbs_test" but you can choose any other user name, just make sure that all parts of the configuration are adapted as well. This user has to be a postgres superuser.
+
+```
+sudo useradd -s /bin/bash -m dbs_test
+```
+
+Now you have to create a database with the name of that user, please note, that this database will also be used to store all data imported to and processed with DBStream.
+
+```
+sudo su - postgres           # change to the postgres user
+createuser -P -s dbs_test    # create new user with superuser rights and set password
+createdb dbs_test            # create a database with the same name
+
+```
+
+DBStream uses two tablespaces to store data on disk, namely data0 and view0. For testing purposes, we will locate them in the home folder of the dbs_test user, but in a real setup you probably want to set them to a large RAID-10 storage array.
+
+```
+sudo mkdir /home/dbs_test/dbs_ts0             # create data0
+sudo chown postgres /home/dbs_test/dbs_ts0    # This directory must be accessable by the postgres system user
+```
+
+Now the newly created DBStream database needs to be initialized. Therefore, change to the test directory and login into the database you just created:
+
+```
+cd test
+psql dbs_test        # Please note that you need to login with a database superuser, so you might want to change to the dbs_test user first.
+```
+
+If you log correctly into the database you should see something like this:
+
+```
+psql (9.3.6)
+Type "help" for help.
+
+dbs_test=# 
+```
+
+Now please run the following command to initialize some DBStream internal tables.
+
+```
+\i initialize.sql
+```
+
+If all steps from this part completed successfully you can go on and start DBStream for the first time!
+
+
+## Starting DBStream
+
+First we need to have all DBStream executables available in the test directory.
+
+```
+cd test
+ln -s ../bin/* .  # make sure that the build command from the previous part was successful.
+```
+
+Now you should see the executables in this directory (e.g. hydra, math_probe, math_repo, scheduler and remote). For this example it is the best to open three shells. In the first shell we will run *dbstream*, in the second we will run the *import source* and the third will be used for *monitoring* DBStream.
+
+In the *monitoring* shell run the following command:
+
+```
+cd dbstream/test
+watch -n 1 ./remote
+```
+
+
+In the *dbstream* shell execute the following command:
+
+```
+cd dbstream/test
+./hydra --config sc_tstat.xml
+```
+
+In the *import source* run the following command:
+
+```
+cd dbstream/test
+./math_probe --config math_prob.xml
+```
+
+If all went well, you should now be able to log into postgres:
+
+```
+select * from example_log_tcp_complete; 
+```
+
+To cleanup the tables and run the example import again, inside postgres execute the following command:
+
+```
+select dbs_drop_table('example_log_tcp_complete'); select dbs_drop_table('tstat_test');
+```
+
+and in the shell run:
+
+```
+rm -rf /tmp/target/
+```
+
+Stay tuned for even further documentation.
 
 
 License
