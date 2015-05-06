@@ -30,7 +30,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
-	
+
 	"github.com/go-martini/martini"
 
 	"../util"
@@ -49,9 +49,10 @@ type WebHandler struct {
 	imports 		[]*util.DBSImportConfig
 	fileHandlers	[]FileHandler
 	mutex 			*sync.Mutex
+	runningImports  string
 }
 
-var runningImports = "running_imports.xml"
+//var runningImports = "running_imports.xml"
 
 type RunningImports struct {
 	XMLName		xml.Name 				`xml:"runningImports"`
@@ -65,10 +66,10 @@ func NewWebHandler(name string, cfg Config) *WebHandler {
 		make([]*util.DBSImportConfig, 0),
 		make([]FileHandler, 0),
 		new(sync.Mutex),
+		cfg.FileHandlerConfig.OutDir + "/running_imports.xml",
 	}	
-
 	var imports RunningImports
-	runningFile, err := os.Open(runningImports)
+	runningFile, err := os.Open(imp.runningImports)
 	if os.IsNotExist(err) {
 		log.Print("No running import file found starting with 0 imports.")
 		return imp
@@ -125,7 +126,7 @@ func (i *WebHandler) persistImports() {
 		running.Imports = append(running.Imports, *impCfg)
 	}
 
-	runningFile, err := os.Create(runningImports)
+	runningFile, err := os.Create(i.runningImports)
 	if err != nil {
 		log.Printf("ERROR: %v", err)
 	}
@@ -146,6 +147,11 @@ func (i *WebHandler) RunImport(cfg *util.DBSImportConfig) {
 
 	fh.Configure(i.cfg.FileHandlerConfig, *cfg, fq)
 	curTime := fh.GetLastTimestamp()
+
+	if curTime < cfg.StartTime {
+		curTime = cfg.StartTime
+	}
+
 	go fh.HandleImport()
 
 	i.persistImports()

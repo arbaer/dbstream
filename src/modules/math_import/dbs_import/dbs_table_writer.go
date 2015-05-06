@@ -103,9 +103,13 @@ func (w *DBSTableWriter) DoImport() {
 	token := reply.RegToken
 	lastImport := time.Now()
 
+	//log.Printf("XXXXXXXXXXXXXX waiting for files")
 	for file := range w.fileChan {
 		//ask scheduler for execution permission
+
+		//log.Printf("XXXXXXXXXXXXXX sending job")
 		_, execReply := schedConn.SendAndWaitForJob(w.streamName, token, file.Timestamp)
+		//log.Printf("XXXXXXXXXXXXXX job exec")
 		w.CurrentTime = file.Timestamp
 		lastImport = time.Now()
 		//create new partition
@@ -164,7 +168,8 @@ func (w *DBSTableWriter) initJobState() {
 			w.CurrentTime = w.startTime - w.startTime % int64(w.outputWindow)
 		} else {
 			//if there is no start time given use the current time as start time
-			w.CurrentTime = time.Now().Unix() - time.Now().Unix() % int64(w.outputWindow)
+			//w.CurrentTime = time.Now().Unix() - time.Now().Unix() % int64(w.outputWindow)
+			w.CurrentTime = 0
 		}
 	} else {
 		//check if the window size changed

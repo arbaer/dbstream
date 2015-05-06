@@ -32,6 +32,7 @@ type DBSImportConfig struct {
 	CallBackUrl	string 		`xml:"callBackUrl,attr"`
 	StreamName	string		`xml:"streamName,attr"`
 	StreamType	string		`xml:"streamType,attr"`
+	StartTime	int64 
 //	ImportDir	string		`xml:"importDir,attr"`
 }
 

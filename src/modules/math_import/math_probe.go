@@ -38,6 +38,7 @@ import(
 
 var configFileName = flag.String("config", "math_probe.xml", "The configuration file used in the server. If not present, the file 'serverConf.xml' will be used.")
 var repoUrl = flag.String("repoUrl", "localhost:3000", "The URL under which to contact the Repository, e.g. localhost:3000")
+var startTimeFlag = flag.String("startTime", "0", "The point in time the import should be started, e.g. 2006-01-02T15:04:05Z07:00")
 
 type Config struct {
 	XMLName		xml.Name	`xml:"config"`
@@ -83,6 +84,17 @@ func (s *Server) ListDir(params martini.Params) (int, string) {
 func main() {
 	flag.Parse()
 
+	var err error
+	startTime := time.Now()
+	if startTimeFlag != nil {
+		startTime, err = time.Parse("2006-01-02T15:04:05Z07:00", *startTimeFlag)
+		if err != nil {
+			log.Fatalf("ERROR: given time format wrong:%s", err)
+		}
+	} 
+	startTimeUnix := startTime.Unix()
+
+	log.Printf("Starting import at: %s", startTime)
 	importUrl := *repoUrl + "/DBSImport"
 
 	var cfg Config
@@ -111,6 +123,7 @@ func main() {
 		CallBackUrl: cfg.Ip + ":" + cfg.Port,
 		StreamName: cfg.StreamName, 
 		StreamType: cfg.StreamType,
+		StartTime: startTimeUnix,
 //		ImportDir: "PUL",
 	}
 
