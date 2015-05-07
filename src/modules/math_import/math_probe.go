@@ -87,7 +87,10 @@ func main() {
 	var err error
 	startTime := time.Now()
 	if startTimeFlag != nil {
-		startTime, err = time.Parse("2006-01-02T15:04:05Z07:00", *startTimeFlag)
+		log.Printf("WARNING: assuming local time.")
+
+		loc := time.Now().Location()
+		startTime, err = time.ParseInLocation("2006-01-02T15:04:05", *startTimeFlag, loc)
 		if err != nil {
 			log.Fatalf("ERROR: given time format wrong:%s", err)
 		}
