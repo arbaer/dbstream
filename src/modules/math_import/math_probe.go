@@ -29,8 +29,10 @@ import(
 	"path/filepath"
 	"strings"
 	"time"
+	"sort"
 
 	"github.com/go-martini/martini"
+	"./dbs_import"
 
 	"./util"
 
@@ -47,6 +49,7 @@ type Config struct {
 	Directory	string 		`xml:"directory,attr"`
 	StreamName 	string 		`xml:"streamName,attr"`
 	StreamType 	string 		`xml:"streamType,attr"`
+	FileTimeConvMethod string `xml:"fileTimeConvMethod,attr"`
 }
 
 type Server struct {
@@ -72,10 +75,26 @@ func (s *Server) ListDir(params martini.Params) (int, string) {
 			return nil
 		})
 
-		filesJson, err := json.Marshal(files)
+		fileTimes := make([]dbs_import.FileTime, len(files))
+		for i,file := range files {
+			ft := dbs_import.GetFileTime(s.cfg.FileTimeConvMethod, file)
+
+			fileTimes[i] = ft
+		}
+		sort.Sort(dbs_import.ByTime(fileTimes))
+
+		var outFiles []string
+
+		for fi := 0; fi < len(fileTimes) - 1; fi++ {
+			outFiles = append(outFiles, fileTimes[fi].Filename)
+		}
+		
+
+		filesJson, err := json.Marshal(outFiles)
 		if err != nil {
 			log.Print(err)
 		}
+
 
 		return http.StatusOK, string(filesJson)
 	}

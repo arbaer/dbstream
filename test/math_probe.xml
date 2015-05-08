@@ -1,3 +1,3 @@
 <?xml version="1.0"?>
 <!--config ip="10.0.8.26" port="3001" directory="new_PUL/" streamName="PUL_log_tcp_complete" streamType="log_tcp_complete" /-->
-<config ip="localhost" port="3001" directory="example_data/" streamName="example_log_tcp_complete" streamType="log_tcp_complete_v15" />
+<config ip="localhost" port="3001" fileTimeConvMethod="tstat" directory="example_data/" streamName="example_log_tcp_complete" streamType="log_tcp_complete_v15" />
