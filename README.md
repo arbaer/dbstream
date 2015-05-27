@@ -1,7 +1,8 @@
 
-
+[![mPlane](http://www.ict-mplane.eu/sites/default/files//public/mplane_final_256x_0.png)](http://www.ict-mplane.eu/)
 
 ![alt text](https://github.com/arbaer/dbstream/blob/master/dbs_logo.png "DBStream logo")
+
 
 DBStream is a flexible and easy to use Data Stream Warehouse (DSW) designed and implemented at FTW in Vienna, Austria.
 The main purpose of DBStream is to store and analyze large amounts of network monitoring data [1].
