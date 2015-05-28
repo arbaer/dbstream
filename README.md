@@ -133,7 +133,7 @@ exit                         # close the postgres user session
 
 ```
 
-DBStream uses two tablespaces to store data on disk, namely data0 and view0. For testing purposes, we will locate them in the home folder of the dbs_test user, but in a real setup you probably want to set them to a large RAID-10 storage array.
+DBStream uses a tablespaces to store data on disk, namely dbs_ts0. For testing purposes, we will locate them in the home folder of the dbs_test user, but in a real setup you probably want to set them to a large RAID-10 storage array.
 
 ```
 sudo mkdir /home/dbs_test/dbs_ts0             # create data0
