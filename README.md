@@ -129,6 +129,7 @@ Now you have to create a database with the name of that user, please note, that 
 sudo su - postgres           # change to the postgres user
 createuser -P -s dbs_test    # create new user with superuser rights and set password
 createdb dbs_test            # create a database with the same name
+exit                         # close the postgres user session
 
 ```
 
