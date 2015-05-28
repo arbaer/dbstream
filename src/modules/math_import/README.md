@@ -21,7 +21,7 @@ To start the transfer of file using MATH you first need to start configure and s
 Then, in another shell or on the other machine, the data is coming from you need to start the probe part:
 
 ```
-./math_probe --repoUrl "localhost:3000"
+./math_probe --repoUrl "localhost:3000" --startTime 2006-01-02T15:04:05
 ```
 
 Pleaxse note that for the moment you need to give the URL of the repository as a commandline argument. LAter on this will be handled by the mPlane supervisor.
