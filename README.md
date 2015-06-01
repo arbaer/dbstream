@@ -195,7 +195,7 @@ In the *import source* run the following command:
 
 ```
 cd dbstream/test
-./math_probe --config math_prob.xml --repoUrl "localhost:3000" --startTime 2006-01-02T15:04:05
+./math_probe --config math_probe.xml --repoUrl "localhost:3000" --startTime 2006-01-02T15:04:05
 ```
 
 If all went well, you should now be able to log into postgres:
