@@ -45,6 +45,12 @@ type InputConverter interface {
 func GetInputConverter(inputFormat string) InputConverter {
 	if inputFormat == "log_tcp_complete_v15" {
 		return TstatLogTCPV15{28,29," "}
+	} else if inputFormat == "log_video_complete" {
+		return TstatLogVideo{
+			first_abs:67, 
+			last:60, 
+			inputDelimiter: " ",
+		}
 	}
 	panic(fmt.Sprintf("Input type '%s' not implemented", inputFormat))
 }
@@ -83,3 +89,48 @@ func (t TstatLogTCPV15) ConvertLine(sline []string, delimiter string)  string {
 	return strings.Join(sline, delimiter)
 }
 // /TstatLogTCPV15 implementation
+
+
+
+// TstatLogVideo implementation
+type TstatLogVideo struct {
+	first_abs int
+	last int
+	inputDelimiter string
+}
+
+func (t TstatLogVideo) Line2Array(line string) []string {
+	return strings.Split(line, t.inputDelimiter)
+}
+
+func (t TstatLogVideo) CheckLine(sline []string) (isValid bool) {
+	if len(sline) != 125 {
+		log.Panic("LINE LEN: ", len(sline))
+	}	
+	return true
+}
+
+func (t TstatLogVideo) GetSerialTime(sline []string, lastSerialTime int64) (serialTime int64) {
+
+	first_abs, err := strconv.ParseFloat(sline[t.first_abs], 64)
+	if err != nil {
+		log.Panic("ERROR: %s", err)
+	}
+
+	last, err := strconv.ParseFloat(sline[t.last], 64)
+	if err != nil {
+		log.Panic("ERROR: %s", err)
+	}
+
+	newTS := int64( (first_abs + last)/1000 )
+	if newTS > lastSerialTime {
+		return newTS
+	} else {
+		return lastSerialTime
+	}
+}
+
+func (t TstatLogVideo) ConvertLine(sline []string, delimiter string)  string {
+	return strings.Join(sline, delimiter)
+}
+// /TstatLogVideo implementation
