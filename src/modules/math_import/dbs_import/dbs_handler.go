@@ -223,7 +223,7 @@ func (f *DBSImportHandler) handleLines(lines <-chan []string, done chan bool, re
 
 	for more  {
 		if !f.inConv.CheckLine(sline) {
-			log.Fatalf("ERROR: line failed format checks: %s")
+			log.Fatalf("ERROR: line failed format checks.")
 		}
 
 		curTime := f.inConv.GetSerialTime(sline, f.lastSerialTime)
