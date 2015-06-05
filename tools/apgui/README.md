@@ -52,5 +52,5 @@ Please note that at the moment the interpolation method is set to "hanning", if 
 
 AUTHORS:
 
-Arian Bär (main contributer) arian.baer@gmail.com 
+Arian Bär (main contributer) arian.baer _at_ gmail.com 
 Thomas Paulin
