@@ -1,4 +1,4 @@
-APGUI  - Advanced Plotting Graphical User Interface
+APGUI  - Advanced Plotting GUI
 ===================================================
 
 The tool agpui is used to plot data in multiple formats, among them are line plots, scatter plots and bar plots.
