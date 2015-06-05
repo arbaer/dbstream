@@ -27,6 +27,11 @@ if [ ! -d bin ]; then
 fi
 echo
 
+PARALLEL="& "
+if [ "$1" = "single" ]; then
+	PARALLEL=""
+fi
+
 cd bin
 
 echo "Building MATH importer..."
@@ -34,20 +39,31 @@ echo "Building MATH importer..."
 #./build.sh
 #cd -
 set -x
-go build ../src/modules/math_import/math_repo.go &
-go build ../src/modules/math_import/math_probe.go &
+MCMD1="go build ../src/modules/math_import/math_repo.go"
+MCMD2="go build ../src/modules/math_import/math_probe.go"
+if [ "$1" = "single" ]; then
+	$MCMD1; $MCMD2;
+else
+	$MCMD1 & $MCMD2 &
+fi
 set +x
 wait
 echo
 
 echo "Building DBStream main..."
 set -x
-go build ../src/server/hydra.go &
-go build ../src/modules/viewgen/viewgen.go &
-go build ../src/modules/scheduler/scheduler.go &
-go build ../src/modules/external_import/external_import.go &
-go build ../src/modules/retention/retention.go &
-go build ../src/remote/remote.go &
+CMD1="go build ../src/server/hydra.go"
+CMD2="go build ../src/modules/viewgen/viewgen.go"
+CMD3="go build ../src/modules/scheduler/scheduler.go"
+CMD4="go build ../src/modules/external_import/external_import.go"
+CMD5="go build ../src/modules/retention/retention.go"
+CMD6="go build ../src/remote/remote.go"
+if [ "$1" = "single" ]; then
+	$CMD1; $CMD2; $CMD3; $CMD4; $CMD5; $CMD6;
+else
+	$CMD1 & $CMD2 & $CMD3 & $CMD4 & $CMD5 & $CMD6 &
+fi
+
 wait
 set +x
 
