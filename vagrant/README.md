@@ -3,13 +3,19 @@ In order to run a DBStream demo, you need to previously follw these steps:
 1) install vagrant version 1.7.2 from http://www.vagrantup.com/downloads.html
 
 2) add the ubuntu/trusty64 box:
-$$ vagrant box add ubuntu/trusty64
+```
+vagrant box add ubuntu/trusty64
+```
 
 3) start the virtual machine:
-$$ vagrant up
+```
+vagrant up
+```
 
 4) connect to the virtual machine:
-$$ vagrant ssh
+```
+vagrant ssh
+```
 
 5) enjoy DBStream by continuing [here](https://github.com/arbaer/dbstream#starting-dbstream)!
 
