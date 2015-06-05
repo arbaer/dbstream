@@ -3,10 +3,8 @@ APGUI  - Advanced Plotting Graphical User Interface
 
 The tool agpui is used to plot data in multiple formats, among them are line plots, scatter plots and bar plots.
 
-EXAMPLES
-========
 
-## Line plots
+### Line plots
 
 	./apgui.py -l - -x "Exec time" -y "Cache usage" -t "Line plot" lines.txt
 
@@ -17,7 +15,7 @@ It is also possible to have more complex plots, with e.g. more colors of the lin
 In case your X axis contains UNIX timestamps you can use the -p time option.
 
 
-## Multi line plots
+### Multi line plots
 
 You can also plot several plots in one figure with a synchronized X axis
 
@@ -25,22 +23,22 @@ You can also plot several plots in one figure with a synchronized X axis
 
 
 
-## Fill plot
+### Fill plot
 	./apgui.py -l - -x "Exec time" -y "Cache usage" -t "Fill plot" -p fill lines.txt
 
 
-## Stack plot
+### Stack plot
 	./apgui.py -l - -x "Exec time" -y "Cache usage" -t "Stack plot" -p stack lines.txt
 
 
-##Bar plot:
+### Bar plot:
 
 Please note that the bar plots can be use with or without confidence intervals.
 
 	./apgui.py -p bar bar.txt
 
 
-## Heatmaps:
+### Heatmaps:
 
 For the simples form of heatmaps you can use this:
 
