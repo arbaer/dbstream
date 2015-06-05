@@ -170,7 +170,7 @@ If all steps from this part completed successfully you can go on and start DBStr
 First we need to change to the test directory.
 
 ```
-cd test
+cd test   # if you are comming here from vagrant, the directory is src/dbstream/test
 ```
 
 Now you should see the executables in this directory (e.g. hydra, math_probe, math_repo, scheduler and remote). For this example it is the best to open three shells. In the first shell we will run *dbstream*, in the second we will run the *import source* and the third will be used for *monitoring* DBStream.
