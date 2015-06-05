@@ -65,7 +65,7 @@ sudo chown postgres /home/dbs_test/dbs_ts0
 sudo su postgres << 'EOF'
 cd /home/vagrant/src/dbstream/test/
 psql dbs_test -c "\i initialize.sql"
-psql -c "alter user dbs_test password 'test'"
+# psql -c "alter user dbs_test password 'test'"
 exit
 EOF
 
