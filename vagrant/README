@@ -11,4 +11,11 @@ $$ vagrant up
 4) connect to the virtual machine:
 $$ vagrant ssh
 
-5) enjoy DBStream!
+5) enjoy DBStream by continuing [here](https://github.com/arbaer/dbstream#starting-dbstream)!
+
+In case you want to recompile DBStream please set the GOPATH environment variable to and execute the build.sh single threaded:
+
+```
+export GOPATH=~/go
+./build.sh single
+```
