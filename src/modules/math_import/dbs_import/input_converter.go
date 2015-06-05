@@ -23,6 +23,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"net"
 )
 
 /*
@@ -50,6 +51,10 @@ func GetInputConverter(inputFormat string) InputConverter {
 			first_abs:67, 
 			last:60, 
 			inputDelimiter: " ",
+		}
+	} else if inputFormat == "mawi_wide" {
+		return MawiWide{
+			inputDelimiter: "\t",
 		}
 	}
 	panic(fmt.Sprintf("Input type '%s' not implemented", inputFormat))
@@ -134,3 +139,45 @@ func (t TstatLogVideo) ConvertLine(sline []string, delimiter string)  string {
 	return strings.Join(sline, delimiter)
 }
 // /TstatLogVideo implementation
+
+
+// MawiWide implementation
+type MawiWide struct {
+	inputDelimiter string
+}
+
+func (t MawiWide) Line2Array(line string) []string {
+	return strings.Split(line, t.inputDelimiter)
+}
+
+func (t MawiWide) CheckLine(sline []string) (isValid bool) {
+	if len(sline) != 13 {
+		log.Panic("LINE LEN: ", len(sline))
+	}	
+	return true
+}
+
+func (t MawiWide) GetSerialTime(sline []string, lastSerialTime int64) (serialTime int64) {
+
+	serial_time, err := strconv.ParseInt(sline[0], 10, 64)
+	if err != nil {
+		log.Panic("ERROR: %s", err)
+	}
+
+	if serial_time > lastSerialTime {
+		return serial_time
+	} else {
+		return lastSerialTime
+	}
+}
+
+func (t MawiWide) ConvertLine(sline []string, delimiter string)  string {
+	//convert IP from int to inet
+	sline[3] = net.IPv4(sline[3][0], sline[3][1], sline[3][2], sline[3][3]).String()
+	sline[4] = net.IPv4(sline[4][0], sline[4][1], sline[4][2], sline[4][3]).String()
+
+	sline = sline[1:]
+
+	return strings.Join(sline, delimiter)
+}
+// /MawiWide implementation
