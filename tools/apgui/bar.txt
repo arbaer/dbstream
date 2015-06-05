@@ -1,0 +1,16 @@
+realworld1	94647.6;6886.75	Heuristic
+realworld1	72430.5;30.9543	Greedy
+realworld1	279437	Baseline
+realworld2	34464.4;1174.47	Heuristic
+realworld2	42034.2;1.34164	Greedy
+realworld2	63704;0	Baseline
+tcp-ds-7q	30431;0	Heuristic
+tcp-ds-7q	30392;0	Greedy
+tcp-ds-7q	110629;0	Baseline
+tcp-ds-11q	80675;0	Heuristic
+tcp-ds-11q	76804;0	Greedy
+tcp-ds-11q	177780;0	Baseline
+#tcp-ds-63q	501788;44127.2	Heuristic
+tcp-ds-63q	509349;3578.8	Heuristic
+tcp-ds-63q	456177;16413.6	Greedy
+tcp-ds-63q	1005961;0	Baseline
