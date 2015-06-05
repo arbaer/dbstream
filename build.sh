@@ -69,5 +69,11 @@ set +x
 
 cd -
 
+echo "Creating Links"
+for exec in external_import hydra math_probe math_repo remote retention scheduler viewgen
+do
+        ln -sf ../bin/$exec test/$exec
+done
+
 echo
 echo "Build completed." 
