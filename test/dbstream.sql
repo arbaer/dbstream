@@ -16,7 +16,7 @@
 * Author(s): Arian Baer (baer _at_ ftw.at)
 *
 */
-create group dbs_test;
+create group dbs_test with SUPERUSER PASSWORD 'test';
 alter user dbs_test login;
 
 create schema dbs;
