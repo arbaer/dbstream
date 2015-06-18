@@ -29,8 +29,8 @@ import (
 	"path/filepath"
 	"time"
 
-	//"compress/gzip" //original go gzip library
-	"code.google.com/p/vitess/go/cgzip" //faster gzip library
+	"compress/gzip" //original go gzip library
+	//"code.google.com/p/vitess/go/cgzip" //faster gzip library
 
 	"../../../server/lib/dbs"
 	schedConn "../../scheduler/conn"
@@ -248,7 +248,8 @@ func (f *DBSImportHandler) openRemoteFile(file FileTime) io.ReadCloser {
 	var reader io.ReadCloser
 	//Use gzip decompression in case files have the extension .gz
 	if filepath.Ext(file.Filename) == ".gz" {
-		reader, err = cgzip.NewReader(resp.Body)
+		//reader, err = cgzip.NewReader(resp.Body)
+		reader, err = gzip.NewReader(resp.Body)
 		if err != nil {
 			log.Panicf("ERROR: %s", err)
 		}
