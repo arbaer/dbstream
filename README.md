@@ -68,7 +68,7 @@ Now you can install the needed libraries with the following command:
 ```
 go get github.com/lxn/go-pgsql
 go get github.com/go-martini/martini
-go get code.google.com/p/vitess/go/cgzip
+go get github.com/youtube/vitess/go/cgzip #you need to have zlib installed (apt-get install zlib1g-dev)
 ```
 
 Now go to the DBStream server directory e.g.:
