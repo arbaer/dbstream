@@ -126,10 +126,10 @@ sudo useradd -s /bin/bash -m dbs_test
 Now you have to create a database with the name of that user, please note, that this database will also be used to store all data imported to and processed with DBStream.
 
 ```
-sudo su - postgres           # change to the postgres user
-createuser -P -s dbs_test    # create new user with superuser rights and set password
-createdb dbs_test            # create a database with the same name
-exit                         # close the postgres user session
+sudo su - postgres              # change to the postgres user
+createuser -P -s -l dbs_test    # create new user with superuser rights and set password
+createdb dbs_test               # create a database with the same name
+exit                            # close the postgres user session
 
 ```
 
@@ -144,7 +144,7 @@ Now the newly created DBStream database needs to be initialized. Therefore, chan
 
 ```
 cd test
-psql dbs_test        # Please note that you need to login with a database superuser, so you might want to change to the dbs_test user first.
+psql dbs_test -h localhost -U dbs_test      # Please note that you need to login with the dbs_test user
 ```
 
 If you log correctly into the database you should see something like this:
