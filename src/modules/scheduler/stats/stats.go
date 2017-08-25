@@ -23,7 +23,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/lxn/go-pgsql"
+	//"github.com/lxn/go-pgsql"
+	"github.com/jackc/pgx"
 	
 	"../../../server/lib/dbs"
 )
@@ -31,33 +32,35 @@ import (
 var col Collector
 
 type Collector struct {
-	insertStmt *pgsql.Statement
+	conn 			*pgx.Conn
+	insertStmtName 	string
 
 	//params
-	timestampParam		*pgsql.Parameter
-	jobSeriesParam		*pgsql.Parameter
-	jobParam			*pgsql.Parameter
-	inputsParam			*pgsql.Parameter
-	outputsParam			*pgsql.Parameter
-	inputTimeParam		*pgsql.Parameter
-	execTimeParam		*pgsql.Parameter
-	affectedRowsParam	*pgsql.Parameter
-	additionalParam		*pgsql.Parameter
+	timestamp		time.Time
+	jobSeries		string
+	job				string
+	inputs			string
+	outputs			string
+	inputTime		int64
+	execTime		time.Duration
+	affectedRows	int64
+	additional		map[string]string
 }
 
 func Configure() (err error) {
-	insertQ := "insert into dbs.query_stats values (@timestamp, @jobSeries, @job, @inputs, @outputs, @inputTime, @execTime, @affectedRows, @additional);"
-	col.timestampParam		= pgsql.NewParameter("@timestamp", pgsql.Timestamp)
-	col.jobSeriesParam		= pgsql.NewParameter("@jobSeries", pgsql.Text)
-	col.jobParam			= pgsql.NewParameter("@job", pgsql.Text)
-	col.inputsParam			= pgsql.NewParameter("@inputs", pgsql.Text)
-	col.outputsParam		= pgsql.NewParameter("@outputs", pgsql.Text)
-	col.inputTimeParam		= pgsql.NewParameter("@inputTime", pgsql.Bigint)
-	col.execTimeParam		= pgsql.NewParameter("@execTime", pgsql.Real)
-	col.affectedRowsParam	= pgsql.NewParameter("@affectedRows", pgsql.Bigint)
-	col.additionalParam		= pgsql.NewParameter("@additional", pgsql.Text)
-
-	col.insertStmt, err = dbs.Prepare(insertQ, col.timestampParam, col.jobSeriesParam, col.jobParam, col.inputsParam, col.outputsParam, col.inputTimeParam, col.execTimeParam, col.affectedRowsParam, col.additionalParam)
+	//insertQ := "insert into dbs.query_stats values (@timestamp, @jobSeries, @job, @inputs, @outputs, @inputTime, @execTime, @affectedRows, @additional);"
+	insertQ := "insert into dbs.query_stats values ($1, $2, $3, $4, $5, $6, $7, $8, $9);"
+	//col.timestampParam		= pgsql.NewParameter("@timestamp", pgsql.Timestamp)
+	//col.jobSeriesParam		= pgsql.NewParameter("@jobSeries", pgsql.Text)
+	//col.jobParam			= pgsql.NewParameter("@job", pgsql.Text)
+	//col.inputsParam			= pgsql.NewParameter("@inputs", pgsql.Text)
+	//col.outputsParam		= pgsql.NewParameter("@outputs", pgsql.Text)
+	//col.inputTimeParam		= pgsql.NewParameter("@inputTime", pgsql.Bigint)
+	//col.execTimeParam		= pgsql.NewParameter("@execTime", pgsql.Real)
+	//col.affectedRowsParam	= pgsql.NewParameter("@affectedRows", pgsql.Bigint)
+	//col.additionalParam		= pgsql.NewParameter("@additional", pgsql.Text)
+	col.insertStmtName = "collectStats"
+	col.conn, err = dbs.Prepare(col.insertStmtName, insertQ)//, col.timestampParam, col.jobSeriesParam, col.jobParam, col.inputsParam, col.outputsParam, col.inputTimeParam, col.execTimeParam, col.affectedRowsParam, col.additionalParam)
 	if err != nil {
 		log.Fatalf("ERROR: stats collector query prepare failed. %v\n", err)
 	}
@@ -74,14 +77,14 @@ func dur2secs(dur time.Duration) (secs float32) {
 
 func Collect(timestamp time.Time, jobSeries, job, inputs, outputs string, inputTime int64, execTime time.Duration, affectedRows int64, additional map[string]string) {
 
-	col.timestampParam.SetValue(timestamp)
-	col.jobSeriesParam.SetValue(jobSeries)
-	col.jobParam.SetValue(job)
-	col.inputsParam.SetValue(inputs)
-	col.outputsParam.SetValue(outputs)
-	col.inputTimeParam.SetValue(inputTime)
-	col.execTimeParam.SetValue(float32(execTime.Seconds()))
-	col.affectedRowsParam.SetValue(affectedRows)
+	//col.timestampParam.SetValue(timestamp)
+	//col.jobSeriesParam.SetValue(jobSeries)
+	//col.jobParam.SetValue(job)
+	//col.inputsParam.SetValue(inputs)
+	//col.outputsParam.SetValue(outputs)
+	//col.inputTimeParam.SetValue(inputTime)
+	//col.execTimeParam.SetValue(float32(execTime.Seconds()))
+	//col.affectedRowsParam.SetValue(affectedRows)
 	additionalString := ""
 	for k,v := range additional {
 		if len(additionalString) > 0 {
@@ -89,8 +92,8 @@ func Collect(timestamp time.Time, jobSeries, job, inputs, outputs string, inputT
 		}
 		additionalString += fmt.Sprintf("%s=>\"%s\"", k, v)
 	}
-	col.additionalParam.SetValue(additionalString)
-	_, err := col.insertStmt.Execute()
+//	col.additionalParam.SetValue(additionalString)
+	_, err := col.conn.Exec(col.insertStmtName, timestamp, jobSeries, job, inputs, outputs, inputTime, execTime, affectedRows, additional)
 	if err != nil {
 		log.Fatalf("ERROR: can not write statistics to database. %v", err)
 	}

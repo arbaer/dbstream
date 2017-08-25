@@ -24,9 +24,11 @@ import (
 	"reflect"
 	"strings"
 	"sync"
-	"time"
+	//"time"
 	"math"
-	"github.com/lxn/go-pgsql"
+	
+	//"context"
+	"github.com/jackc/pgx"
 )
 
 type DbsConn struct {
@@ -36,8 +38,9 @@ type DbsConn struct {
 	Port     int    `xml:"port,attr"`
 	Host     string `xml:"host,attr"`
 	Password string `xml:"password,attr"`
-	pool     *pgsql.Pool
-	prepareConn *pgsql.Conn
+	//pool     *pgsql.Pool
+	pool     *pgx.ConnPool
+	prepareConn *pgx.Conn
 }
 
 //static variable for internal use only
@@ -49,10 +52,22 @@ func Configure(cfg DbsConn) (err error) {
 	dbs.lock.Lock()
 	defer dbs.lock.Unlock()
 
-	conStr := fmt.Sprintf("dbname=%v host=%v port=%v user=%v password=%v",
-		dbs.DbName, dbs.Host, dbs.Port, dbs.User, dbs.Password)
+	//conStr := fmt.Sprintf("dbname=%v host=%v port=%v user=%v password=%v",
+	//	dbs.DbName, dbs.Host, dbs.Port, dbs.User, dbs.Password)
 	log.Printf("dbname=%v host=%v port=%v user=%v\n", dbs.DbName, dbs.Host, dbs.Port, dbs.User)
-	pool, err := pgsql.NewPool(conStr, 1, 10, time.Second*1)
+
+	dbconfig := &pgx.ConnConfig{
+					Host: dbs.Host, 
+					User: dbs.User, 
+					Password: dbs.Password, 
+					Database: dbs.DbName}
+
+	config := pgx.ConnPoolConfig{
+		ConnConfig: *dbconfig, 
+		MaxConnections: 10}
+	pool, err := pgx.NewConnPool(config)
+
+	//pool, err := pgsql.NewPool(conStr, 1, 10, time.Second*10)
 	if err != nil {
 		return err
 	}
@@ -63,10 +78,11 @@ func Configure(cfg DbsConn) (err error) {
 }
 
 func Close() {
-	err := dbs.pool.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
+//	err := dbs.pool.Close()
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+	dbs.pool.Close()
 }
 
 func GetViewHostname() string {
@@ -93,10 +109,12 @@ func Exec(query string) (rowsAffected int64) {
 	}
 	defer dbs.pool.Release(conn)
 
-	rowsAffected, err = conn.Execute(query)
+	var ct pgx.CommandTag
+	ct, err = conn.Exec(query)
 	if err != nil {
 		log.Fatalf("Query: '%v' failed to execute.", query)
 	}
+	rowsAffected = ct.RowsAffected()
 	return
 }
 
@@ -107,10 +125,15 @@ func ExecErr(query string) (rowsAffected int64, err error) {
 	}
 	defer dbs.pool.Release(conn)
 
-	return conn.Execute(query)
+	var ct pgx.CommandTag
+	ct, err = conn.Exec(query)
+	rowsAffected = ct.RowsAffected()
+
+
+	return rowsAffected, err
 }
 
-func Prepare(query string, params ...*pgsql.Parameter) (stmt *pgsql.Statement, err error) {
+func Prepare(name, query string) (conn *pgx.Conn, err error) {
 	if dbs.prepareConn == nil {
 		var err error
 		dbs.prepareConn, err = dbs.pool.Acquire()
@@ -118,7 +141,9 @@ func Prepare(query string, params ...*pgsql.Parameter) (stmt *pgsql.Statement, e
 			log.Fatalf("Dbs Prepare failed.\n%v", err)
 		}
 	}
-	return dbs.prepareConn.Prepare(query, params...)
+
+	_, err = dbs.prepareConn.Prepare(name, query)
+	return dbs.prepareConn, err
 }
 
 type DbsTable struct {
@@ -316,6 +341,7 @@ func fetchTable(query string, t reflect.Type) interface{} {
 	}
 	defer dbs.pool.Release(conn)
 
+
 	rs, err := conn.Query(query)
 	if err != nil {
 		log.Fatalf("fetchTable failed.\n%v", err)
@@ -325,7 +351,79 @@ func fetchTable(query string, t reflect.Type) interface{} {
 	tmp := reflect.MakeSlice(t, slSize, slSize)
 	var i int
 	for i = 0; ; i++ {
-		hasRow, err := rs.FetchNext()
+		hasRow := rs.Next()
+		if !hasRow {
+			break
+		}
+
+		if i%slSize == 0 && i != 0 {
+			if tmp.Index(0) != reflect.Zero(tmp.Index(0).Type()) {
+				ret = reflect.AppendSlice(ret, tmp)
+			}
+			tmp = reflect.MakeSlice(t, slSize, slSize)
+		}
+		fieldCnt := 1
+		if tmp.Index(i%slSize).Kind() == reflect.Struct {
+			fieldCnt = tmp.Index(i % slSize).NumField()
+		}
+
+		vals, err := rs.Values()
+		if err != nil {
+			log.Fatalf("fetchTable scan failed.\n%v", err)
+		}
+
+		for fi := 0; fi < fieldCnt; fi++ {
+			any := vals[fi]
+
+			var field reflect.Value
+			if tmp.Index(i%slSize).Kind() == reflect.Struct {
+				field = tmp.Index(i % slSize).Field(fi)
+			} else {
+				field = tmp.Index(i % slSize)
+			}
+
+			switch v := any.(type) {
+			case string:
+				field.SetString(v)
+			case float32:
+				field.SetFloat(float64(v))
+			case float64:
+				field.SetFloat(v)
+			case int:
+				field.SetInt(int64(v))
+			case int64:
+				field.SetInt(int64(v))
+			case bool:
+				field.SetBool(v)
+			}
+		}
+	}
+	if tmp.Index(0).Interface() != nil {
+		ret = reflect.AppendSlice(ret, tmp)
+	}
+	return ret.Slice(0, i).Interface()
+}
+/*
+func fetchTable(query string, t reflect.Type) interface{} {
+	//rows to fetch per step
+	slSize := 1024
+
+	conn, err := dbs.pool.Acquire()
+	if err != nil {
+		log.Fatalf("fetchTable failed.\n%v", err)
+	}
+	defer dbs.pool.Release(conn)
+
+	rs, err := conn.Query(query)
+	if err != nil {
+		log.Fatalf("fetchTable failed.\n%v", err)
+	}
+
+	ret := reflect.MakeSlice(t, 0, 0)
+	tmp := reflect.MakeSlice(t, slSize, slSize)
+	var i int
+	for i = 0; ; i++ {
+		hasRow, err := rs.Next()
 		if !hasRow {
 			break
 		}
@@ -377,12 +475,86 @@ func fetchTable(query string, t reflect.Type) interface{} {
 	}
 	return ret.Slice(0, i).Interface()
 }
+*/
 
 /*
-fetchTable
+safeFetchTable
 
 Requests a table from the database and returns a slice of the given type of data.
 */
+func safeFetchTable(query string, t reflect.Type) (interface{}, error) {
+	//rows to fetch per step
+	slSize := 1024
+
+	conn, err := dbs.pool.Acquire()
+	if err != nil {
+		return nil, err
+	}
+	defer dbs.pool.Release(conn)
+
+
+	rs, err := conn.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	ret := reflect.MakeSlice(t, 0, 0)
+	tmp := reflect.MakeSlice(t, slSize, slSize)
+	var i int
+	for i = 0; ; i++ {
+		hasRow := rs.Next()
+		if !hasRow {
+			break
+		}
+
+		if i%slSize == 0 && i != 0 {
+			if tmp.Index(0) != reflect.Zero(tmp.Index(0).Type()) {
+				ret = reflect.AppendSlice(ret, tmp)
+			}
+			tmp = reflect.MakeSlice(t, slSize, slSize)
+		}
+		fieldCnt := 1
+		if tmp.Index(i%slSize).Kind() == reflect.Struct {
+			fieldCnt = tmp.Index(i % slSize).NumField()
+		}
+
+		vals, err := rs.Values()
+		if err != nil {
+			return nil, err
+		}
+
+		for fi := 0; fi < fieldCnt; fi++ {
+			any := vals[fi]
+
+			var field reflect.Value
+			if tmp.Index(i%slSize).Kind() == reflect.Struct {
+				field = tmp.Index(i % slSize).Field(fi)
+			} else {
+				field = tmp.Index(i % slSize)
+			}
+
+			switch v := any.(type) {
+			case string:
+				field.SetString(v)
+			case float32:
+				field.SetFloat(float64(v))
+			case float64:
+				field.SetFloat(v)
+			case int:
+				field.SetInt(int64(v))
+			case int64:
+				field.SetInt(int64(v))
+			case bool:
+				field.SetBool(v)
+			}
+		}
+	}
+	if tmp.Index(0).Interface() != nil {
+		ret = reflect.AppendSlice(ret, tmp)
+	}
+	return ret.Slice(0, i).Interface(), nil
+}
+/*
 func safeFetchTable(query string, t reflect.Type) (interface{}, error) {
 	//rows to fetch per step
 	slSize := 1024
@@ -454,3 +626,4 @@ func safeFetchTable(query string, t reflect.Type) (interface{}, error) {
 	}
 	return ret.Slice(0, i).Interface(), nil
 }
+*/
