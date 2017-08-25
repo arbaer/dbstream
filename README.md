@@ -43,6 +43,8 @@ DBStream and the used libraries assume that you are using golang version 1.2.x. 
 
 ## General Installation Instructions
 
+Make sure you are using go 1.8. Backports are available here: https://launchpad.net/~longsleep/+archive/ubuntu/golang-backports
+
 In order to compile the go source code of DBStream you have to install the go language:
 
 ```
@@ -66,7 +68,7 @@ export GOPATH=~/go
 Now you can install the needed libraries with the following command:
 
 ```
-go get github.com/lxn/go-pgsql
+go get github.com/jackc/pgx
 go get github.com/go-martini/martini
 go get github.com/youtube/vitess/go/cgzip #you need to have zlib installed (apt-get install zlib1g-dev)
 ```
